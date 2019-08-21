@@ -1,3 +1,5 @@
+const TASK_AMOUNT = 10;
+
 const getTask = () => ({
   description: [`Изучить теорию`, `Сделать домашку`, `Пройти интенсив на соточку`][Math.floor(Math.random() * 3)],
   dueDate: Date.now() + 1 + Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000,
@@ -16,49 +18,41 @@ const getTask = () => ({
   isArchive: Boolean(Math.round(Math.random())),
 });
 
-const getTaskList = () => {
-  const taskList = [];
-  for (let i = 0; i < 20; i++) {
-    taskList.push(getTask());
+const taskList = new Array(TASK_AMOUNT).fill(``).map(getTask);
+
+const getFilterList = (data) => ([
+  {
+    title: `all`,
+    count: data.length
+  },
+  {
+    title: `overdue`,
+    count: data.filter((task) => Date.now() - task.dueDate > 0).length
+  },
+  {
+    title: `today`,
+    count: data.filter((task) => new Date(Date.now())
+       .getDate() === new Date(task.dueDate).getDate()).length
+  },
+  {
+    title: `favorites`,
+    count: data.filter((task) => task.isFavorite).length
+  },
+  {
+    title: `repeating`,
+    count: data.filter((task) => Object.keys(task.repeatingDays)
+      .some((day) => task.repeatingDays[day])).length
+  },
+  {
+    title: `tags`,
+    count: data.filter((task) => task.tags.size).length
+  },
+  {
+    title: `archive`,
+    count: data.filter((task) => task.isArchive).length
   }
-  return taskList;
-};
+]);
 
-const taskList = getTaskList();
 
-const filterData = {
-  titles: [`all`,
-    `overdue`,
-    `today`,
-    `favorites`,
-    `repeating`,
-    `tags`,
-    `archive`],
-  counters: {
-    all: taskList.length,
-    overdue: taskList.filter((task) => Date
-      .now() - task.dueDate > 0).length,
-    today: taskList.filter((task) => new Date(Date.now())
-      .getDate() === new Date(task.dueDate).getDate()).length,
-    favorites: taskList.filter((task) => task.isFavorite).length,
-    repeating: taskList.filter((task) => Object.keys(task.repeatingDays)
-      .some((day) => task.repeatingDays[day])).length,
-    tags: taskList.filter((task) => task.tags.size > 0).length,
-    archive: taskList.filter((task) => task.isArchive).length,
-  }};
-
-export const getFilterList = () => {
-  const filterList = [];
-  for (let i = 0; i < 7; i++) {
-    filterList.push(
-        {
-          title: filterData.titles[i],
-          count: filterData.counters[filterData.titles[i]],
-        }
-    );
-  }
-  return filterList;
-};
-
-export {taskList};
+export {taskList, getFilterList};
 

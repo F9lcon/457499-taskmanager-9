@@ -5,11 +5,10 @@ import {getBoardContainer} from "./components/board";
 import {getAddTaskForm} from "./components/task-edit";
 import {getTaskCard} from "./components/task";
 import {getLoadMoreButton} from "./components/load-more-button";
-import {taskList} from "./data";
-import {getFilterList} from "./data";
+import {taskList, getFilterList} from "./data";
 
-let taskAmount = 7;
-let loadMoreButton;
+const TASK_AMOUNT = 7;
+const MAX_TASK_COULD_LOAD = 8;
 
 const mainElement = document.querySelector(`main`);
 const mainControlElement = document
@@ -23,54 +22,40 @@ const renderBoardContent = () => {
   const taskBoardElement = document.querySelector(`.board__tasks`);
 
   renderComponent(taskBoardElement, getAddTaskForm());
-  for (let i = 0; i < taskAmount; i++) {
+  for (let i = 0; i < TASK_AMOUNT; i++) {
     renderComponent(taskBoardElement, getTaskCard(taskList[i]));
   }
 };
 
-const renderFilters = () => {
-  renderComponent(mainElement, getFilterContainer(getFilterList()));
-
+const renderCards = (tasks) => {
+  tasks.forEach((task) => {
+    renderComponent(document.querySelector(`.board__tasks`), getTaskCard(task));
+  });
 };
 
-const getListEnd = () => {
-  let listEnd;
-  if (taskAmount + 8 >= taskList.length) {
-    listEnd = taskList.length;
-  } else {
-    listEnd = taskAmount + 8;
-  }
-  return listEnd;
-};
-
-
-const renderMoreTasks = () => {
+const onLoadMoreClick = () => {
   const taskBoardElement = document.querySelector(`.board__tasks`);
 
-  let listStart = taskAmount;
-  let listEnd = getListEnd();
-  for (let i = listStart; i < listEnd; i++) {
-    renderComponent(taskBoardElement, getTaskCard(taskList[i]));
-  }
-  taskAmount += 8;
-  if (taskAmount >= taskList.length) {
-    document
-      .querySelector(`.board.container`).removeChild(loadMoreButton);
+  if (taskBoardElement.childElementCount < taskList.length) {
+    renderCards(taskList.slice(taskBoardElement.childElementCount,
+        taskBoardElement.childElementCount + MAX_TASK_COULD_LOAD));
+    if (taskBoardElement.childElementCount >= taskList.length) {
+      document.querySelector(`.board.container`)
+        .removeChild(document.querySelector(`.load-more`));
+    }
+  } else {
+    document.querySelector(`.board.container`)
+      .removeChild(document.querySelector(`.load-more`));
   }
 };
 
-const renderAllElements = () => {
-  renderComponent(mainControlElement, getMenuContainer());
-  renderComponent(mainElement, getSearchContainer());
-  renderFilters();
-  renderComponent(mainElement, getBoardContainer());
-  renderBoardContent();
-  renderComponent(document
-    .querySelector(`.board.container`), getLoadMoreButton());
+renderComponent(mainControlElement, getMenuContainer());
+renderComponent(mainElement, getSearchContainer());
+renderComponent(mainElement, getFilterContainer(getFilterList(taskList)));
+renderComponent(mainElement, getBoardContainer());
+renderBoardContent();
+renderComponent(document
+  .querySelector(`.board.container`), getLoadMoreButton());
 
-  loadMoreButton = document.querySelector(`.load-more`);
-
-  loadMoreButton.addEventListener(`click`, renderMoreTasks);
-};
-
-renderAllElements();
+document.querySelector(`.load-more`)
+  .addEventListener(`click`, onLoadMoreClick);
